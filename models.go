@@ -1,6 +1,53 @@
 package qi
 
-import "time"
+import (
+	"encoding/json"
+	"strings"
+	"time"
+)
+
+// Time is a custom time type that handles the QiCard API's time format.
+// The API returns timestamps without timezone suffix (e.g., "2026-01-20T11:57:31").
+type Time struct {
+	time.Time
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (t *Time) UnmarshalJSON(data []byte) error {
+	// Remove quotes from the JSON string
+	s := strings.Trim(string(data), "\"")
+	if s == "null" || s == "" {
+		return nil
+	}
+
+	// Try RFC3339 first
+	parsed, err := time.Parse(time.RFC3339, s)
+	if err == nil {
+		t.Time = parsed
+		return nil
+	}
+
+	// Fall back to the API's format without timezone
+	parsed, err = time.Parse("2006-01-02T15:04:05", s)
+	if err != nil {
+		return err
+	}
+	t.Time = parsed
+	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (t Time) MarshalJSON() ([]byte, error) {
+	if t.IsZero() {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(t.Time.Format(time.RFC3339))
+}
+
+// NewTime creates a new Time from a time.Time value.
+func NewTime(t time.Time) Time {
+	return Time{Time: t}
+}
 
 // PaymentStatus represents the status of a payment.
 type PaymentStatus string
@@ -119,7 +166,7 @@ type Payment struct {
 	Canceled       bool              `json:"canceled,omitempty"`
 	Amount         float64           `json:"amount"`
 	Currency       string            `json:"currency"`
-	CreationDate   time.Time         `json:"creationDate"`
+	CreationDate   Time              `json:"creationDate"`
 	FormURL        string            `json:"formUrl,omitempty"`
 	AdditionalInfo map[string]string `json:"additionalInfo,omitempty"`
 }
@@ -134,7 +181,7 @@ type PaymentStatusResponse struct {
 	ConfirmedAmount float64           `json:"confirmedAmount,omitempty"`
 	Currency        string            `json:"currency"`
 	PaymentType     string            `json:"paymentType,omitempty"`
-	CreationDate    time.Time         `json:"creationDate"`
+	CreationDate    Time              `json:"creationDate"`
 	Details         *PaymentDetails   `json:"details,omitempty"`
 	AdditionalInfo  map[string]string `json:"additionalInfo,omitempty"`
 }
@@ -144,7 +191,7 @@ type PaymentDetails struct {
 	ResultCode    string                 `json:"resultCode,omitempty"`
 	RRN           string                 `json:"rrn,omitempty"`
 	AuthID        string                 `json:"authId,omitempty"`
-	AuthDate      *time.Time             `json:"authDate,omitempty"`
+	AuthDate      *Time                  `json:"authDate,omitempty"`
 	MaskedPan     string                 `json:"maskedPan,omitempty"`
 	PaymentSystem PaymentSystem          `json:"paymentSystem,omitempty"`
 	CustomDetails map[string]interface{} `json:"customDetails,omitempty"`
@@ -164,17 +211,17 @@ type PaymentCancelResponse struct {
 	Canceled       bool              `json:"canceled"`
 	Amount         float64           `json:"amount"`
 	Currency       string            `json:"currency"`
-	CreationDate   time.Time         `json:"creationDate"`
+	CreationDate   Time              `json:"creationDate"`
 	Cancels        []Cancel          `json:"cancels,omitempty"`
 	AdditionalInfo map[string]string `json:"additionalInfo,omitempty"`
 }
 
 // Cancel represents cancellation details.
 type Cancel struct {
-	RequestID    string    `json:"requestId,omitempty"`
-	Created      time.Time `json:"created"`
-	Successfully bool      `json:"successfully"`
-	Amount       float64   `json:"amount"`
+	RequestID    string  `json:"requestId,omitempty"`
+	Created      Time    `json:"created"`
+	Successfully bool    `json:"successfully"`
+	Amount       float64 `json:"amount"`
 }
 
 // CreateRefundRequest represents a request to create a refund.
@@ -199,7 +246,7 @@ type Refund struct {
 	PaymentID    string          `json:"paymentId"`
 	Amount       float64         `json:"amount"`
 	Currency     string          `json:"currency"`
-	CreationDate time.Time       `json:"creationDate"`
+	CreationDate Time            `json:"creationDate"`
 	Message      string          `json:"message,omitempty"`
 	Details      *PaymentDetails `json:"details,omitempty"`
 	Status       RefundStatus    `json:"status"`
