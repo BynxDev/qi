@@ -5,7 +5,7 @@ A Go client library for the QiCard Payment Gateway API.
 ## Installation
 
 ```bash
-go get github.com/bynx.dev/qi
+go get github.com/BynxDev/qi
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ go get github.com/bynx.dev/qi
 ### Creating a Client
 
 ```go
-import "github.com/bynx.dev/qi"
+import "github.com/BynxDev/qi"
 
 // Create a client with terminal ID and basic auth
 client := qi.NewClient("your-terminal-id",
