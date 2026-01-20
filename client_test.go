@@ -29,7 +29,7 @@ func TestCreatePayment(t *testing.T) {
 			Status:       qi.PaymentStatusCreated,
 			Amount:       100.50,
 			Currency:     "IQD",
-			CreationDate: time.Now(),
+			CreationDate: qi.NewTime(time.Now()),
 			FormURL:      "https://example.com/pay",
 		}
 
@@ -74,7 +74,7 @@ func TestGetPaymentStatus(t *testing.T) {
 			Status:       qi.PaymentStatusSuccess,
 			Amount:       100.50,
 			Currency:     "IQD",
-			CreationDate: time.Now(),
+			CreationDate: qi.NewTime(time.Now()),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -111,7 +111,7 @@ func TestCancelPayment(t *testing.T) {
 			Canceled:     true,
 			Amount:       100.50,
 			Currency:     "IQD",
-			CreationDate: time.Now(),
+			CreationDate: qi.NewTime(time.Now()),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -148,7 +148,7 @@ func TestRefundPayment(t *testing.T) {
 			PaymentID:    "test-payment-id",
 			Amount:       50.25,
 			Currency:     "IQD",
-			CreationDate: time.Now(),
+			CreationDate: qi.NewTime(time.Now()),
 			Status:       qi.RefundStatusSuccess,
 		}
 
